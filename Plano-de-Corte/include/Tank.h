@@ -46,8 +46,12 @@ public:
     Sphere*   headlight = nullptr;
 
     bool  walking  = false;
+    bool  greeting = false;
+    bool  talking  = false;
     bool  lightOn  = false;
     float walkPhase = 0;
+    float greetTimer = 0;
+    float talkTimer  = 0;
     float shootCooldown = 0;
 
     struct Bullet {
@@ -197,6 +201,30 @@ public:
             root.position.z -= dt * 1.4f;
         }
 
+        // Animacion de saludo
+        if (greeting) {
+            greetTimer += dt;
+            torso->rotation.y = sinf(greetTimer * 4.f) * 30.f;
+            armL->rotation.z  = -65.f + sinf(greetTimer * 5.f) * 50.f;
+            if (greetTimer > 3.f) {
+                greeting = false; greetTimer = 0;
+                torso->rotation.y = 0; armL->rotation.z = -65.f;
+            }
+        }
+
+        // Animacion de habla con parpadeo de luz
+        if (talking) {
+            talkTimer += dt;
+            if (isTank) armR->rotation.x = 90.f + sinf(talkTimer * 8.f) * 8.f;
+            bool blink = fmodf(talkTimer, 0.25f) < 0.12f;
+            if (headlight->visible) headlight->color = blink ? COL_LIGHT : COL_ANT;
+            if (talkTimer > 4.f) {
+                talking = false; talkTimer = 0;
+                if (isTank) armR->rotation.x = 90.f;
+                lightOn = false;
+            }
+        }
+
         if (shootCooldown > 0) shootCooldown -= dt;
 
         for (auto& b : bullets) {
@@ -224,6 +252,12 @@ public:
         b.dir    = { 0, 0, -1 };
         b.active = true;
         bullets.push_back(b);
+    }
+
+    void greet() {
+        greeting = true;  greetTimer = 0;
+        talking  = true;  talkTimer  = 0;
+        lightOn  = true;
     }
 
     void rotateTurret(float d) {
