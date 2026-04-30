@@ -48,6 +48,15 @@ public:
     bool  walking  = false;
     bool  lightOn  = false;
     float walkPhase = 0;
+    float shootCooldown = 0;
+
+    struct Bullet {
+        Vec3  pos;
+        Vec3  dir;
+        float life   = 2;
+        bool  active = false;
+    };
+    std::vector<Bullet> bullets;
 
     bool  transforming = false;
     bool  isTank       = false;
@@ -187,6 +196,15 @@ public:
             }
             root.position.z -= dt * 1.4f;
         }
+
+        if (shootCooldown > 0) shootCooldown -= dt;
+
+        for (auto& b : bullets) {
+            if (!b.active) continue;
+            b.pos = b.pos + b.dir * (dt * 8.f);
+            b.life -= dt;
+            if (b.life <= 0) b.active = false;
+        }
     }
 
     void startTransform() {
@@ -197,6 +215,16 @@ public:
 
     void startWalking() { walking = true; }
     void stopWalking()  { walking = false; legL->rotation.x = legR->rotation.x = 0; }
+
+    void shoot() {
+        if (!isTank || shootCooldown > 0) return;
+        shootCooldown = 0.5f;
+        Bullet b;
+        b.pos    = { root.position.x, 0.8f, root.position.z - 2.4f };
+        b.dir    = { 0, 0, -1 };
+        b.active = true;
+        bullets.push_back(b);
+    }
 
     void rotateTurret(float d) {
         if (isTank) { torso->rotation.y += d; armR->rotation.y += d; }
@@ -237,6 +265,14 @@ public:
 
     void draw(GLuint shader) {
         root.draw(shader);
+        for (auto& b : bullets) {
+            if (!b.active) continue;
+            Sphere s("bullet");
+            s.color    = { 1.f, 0.6f, 0.f };
+            s.scale    = { 0.13f, 0.13f, 0.13f };
+            s.position = b.pos;
+            s.draw(shader);
+        }
     }
 
 private:

@@ -88,7 +88,7 @@ void display() {
     g_tank->draw(g_shader);
 
     g_hud->draw(g_tank->walking, false, g_tank->lightOn,
-                g_tank->isTank, g_selPart, 0);
+                g_tank->isTank, g_selPart, g_tank->shootCooldown);
 
     glutSwapBuffers();
 }
@@ -117,6 +117,7 @@ void keyboard(unsigned char key, int, int) {
         case 'q': g_tank->elevateCannon(-3); g_selPart = "armR"; g_tank->selectPart("armR"); break;
         case 'e': g_tank->elevateCannon(3);  g_selPart = "armR"; g_tank->selectPart("armR"); break;
         case 'h': g_tank->toggleHatch(); g_selPart = "head"; g_tank->selectPart("head"); break;
+        case 'f': g_tank->shoot(); break;
         case 'c':
             g_colorIdx = (g_colorIdx + 1) % 5;
             g_tank->setBodyColor(BODY_COLORS[g_colorIdx]);
