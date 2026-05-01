@@ -196,8 +196,9 @@ int main(int argc, char** argv) {
 
     std::cout << "=== Tank Transformer ===\n"
               << "T: Transformar   W/S: Caminar/Parar   A/D: Torreta\n"
-              << "Q/E: Canon       H: Escotilla          C: Color\n"
-              << "X: Seleccionar   Flechas: Entorno      ESC: Salir\n";
+              << "Q/E: Canon       H: Escotilla          G: Saludar\n"
+              << "F: Disparar      C: Color cuerpo       X: Seleccionar parte\n"
+              << "Flechas: Mover entorno   I/J/K/L: Camara   ESC: Salir\n";
 
     glutMainLoop();
     delete g_tank; delete g_env; delete g_hud;
