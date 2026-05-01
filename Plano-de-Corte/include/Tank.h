@@ -1,5 +1,12 @@
 #pragma once
 // Tank.h - Clase principal del Transformer
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+#endif
+
 #include "Primitives.h"
 #include <cmath>
 #include <string>
@@ -241,8 +248,15 @@ public:
         transforming = true;
     }
 
-    void startWalking() { walking = true; }
-    void stopWalking()  { walking = false; legL->rotation.x = legR->rotation.x = 0; }
+    void startWalking() {
+        walking = true;
+        playSound(L"sounds/walk.wav");
+    }
+    void stopWalking() {
+        walking = false;
+        legL->rotation.x = legR->rotation.x = 0;
+        PlaySound(NULL, NULL, 0);
+    }
 
     void shoot() {
         if (!isTank || shootCooldown > 0) return;
@@ -252,12 +266,14 @@ public:
         b.dir    = { 0, 0, -1 };
         b.active = true;
         bullets.push_back(b);
+        playSound(L"sounds/shoot.wav");
     }
 
     void greet() {
         greeting = true;  greetTimer = 0;
         talking  = true;  talkTimer  = 0;
         lightOn  = true;
+        playSound(L"sounds/greet.wav");
     }
 
     void rotateTurret(float d) {
@@ -324,6 +340,12 @@ private:
         r.color = lerpV(a.color, b.color, t);
         r.visible = a.visible;
         return r;
+    }
+
+    void playSound(const wchar_t* filename) {
+#ifdef _WIN32
+        PlaySound(filename, NULL, SND_FILENAME | SND_ASYNC);
+#endif
     }
 };
 
