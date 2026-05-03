@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Transformer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Component.h" />
@@ -149,7 +150,7 @@
     <ClInclude Include="include\Math3D.h" />
     <ClInclude Include="include\Primitives.h" />
     <ClInclude Include="include\ShaderManager.h" />
-    <ClInclude Include="include\Tank.h" />
+    <ClInclude Include="include\Transformer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

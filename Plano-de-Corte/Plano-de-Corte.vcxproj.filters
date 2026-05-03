@@ -13,33 +13,45 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Archivos de encabezado\core">
+      <UniqueIdentifier>{b442ef45-a6ee-487c-acfd-451e5e6b54a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\enties">
+      <UniqueIdentifier>{976c560b-5c49-4fc0-ad48-265477dd2edb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\scene">
+      <UniqueIdentifier>{84255bb2-cf2c-41be-ac30-a288540e2f40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="Transformer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Component.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\Component.h">
+      <Filter>Archivos de encabezado\core</Filter>
     </ClInclude>
-    <ClInclude Include="Environment.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\Math3D.h">
+      <Filter>Archivos de encabezado\core</Filter>
     </ClInclude>
-    <ClInclude Include="HUD.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\Primitives.h">
+      <Filter>Archivos de encabezado\core</Filter>
     </ClInclude>
-    <ClInclude Include="Math3D.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\ShaderManager.h">
+      <Filter>Archivos de encabezado\core</Filter>
     </ClInclude>
-    <ClInclude Include="Primitives.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\Environment.h">
+      <Filter>Archivos de encabezado\scene</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderManager.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\HUD.h">
+      <Filter>Archivos de encabezado\scene</Filter>
     </ClInclude>
-    <ClInclude Include="Tank.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\Transformer.h">
+      <Filter>Archivos de encabezado\enties</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
