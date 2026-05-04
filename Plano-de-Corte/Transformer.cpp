@@ -1,8 +1,8 @@
 #include "Transformer.h"
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <vector>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #endif
@@ -414,8 +414,7 @@ void Transformer::stopWalking() {
     playSound(NULL);
 }
 void Transformer::greet() {
-    if (currentMode == TransformMode::PLANE) return;
-    
+    // Saludar funciona en cualquier modo
     greeting = true; greetTimer = 0; talking = true; talkTimer = 0; lightOn = true;
     // Forzar luces visibles al saludar
     if (lightL) { lightL->visible = true; lightL->color = COL_LIGHT; }
@@ -428,40 +427,19 @@ void Transformer::playSound(const wchar_t* filename) {
 #ifdef _WIN32
     if (!filename) { PlaySound(NULL, NULL, 0); return; }
 
-    // Obtener la carpeta donde esta el .exe (equivale a ProjectDir en ejecucion)
-    wchar_t exePath[MAX_PATH] = {};
-    GetModuleFileNameW(NULL, exePath, MAX_PATH);
-
-    // Subir hasta la carpeta del proyecto (quitar \x64\Debug\app.exe)
-    std::wstring base(exePath);
-    // Quitar el nombre del exe
-    size_t slash = base.rfind(L'\\');
-    if (slash != std::wstring::npos) base = base.substr(0, slash + 1);
-
-    // La carpeta sounds esta junto al .exe o dos niveles arriba (segun config VS)
-    // Intentamos primero relativa al exe, luego subimos niveles
     std::wstring fn(filename);
     size_t pos = fn.rfind(L'\\');
     if (pos != std::wstring::npos) fn = fn.substr(pos + 1);
 
-    // Intentar: exe\sounds\archivo.wav
-    std::wstring path1 = base + L"sounds\\" + fn;
-    // Intentar: exe\..\..\sounds\archivo.wav  (Debug/Release dentro de x64)
-    std::wstring path2 = base + L"..\\..\\sounds\\" + fn;
-    // Intentar: exe\..\..\..\sounds\archivo.wav
-    std::wstring path3 = base + L"..\\..\\..\\sounds\\" + fn;
+    wchar_t exePath[MAX_PATH];
+    ZeroMemory(exePath, sizeof(exePath));
+    GetModuleFileNameW(NULL, exePath, MAX_PATH);
 
-    // Usar la primera ruta que exista
-    auto fileExists = [](const std::wstring& p) {
-        return GetFileAttributesW(p.c_str()) != INVALID_FILE_ATTRIBUTES;
-        };
+    std::wstring base(exePath);
+    size_t sl = base.rfind(L'\\');
+    if (sl != std::wstring::npos) base = base.substr(0, sl + 1);
 
-    std::wstring finalPath;
-    if (fileExists(path1)) finalPath = path1;
-    else if (fileExists(path2)) finalPath = path2;
-    else if (fileExists(path3)) finalPath = path3;
-    else                        finalPath = path1; // fallback
-
+    std::wstring finalPath = base + L"..\\..\\Plano-de-Corte\\sounds\\" + fn;
     PlaySound(finalPath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 #endif
 }
