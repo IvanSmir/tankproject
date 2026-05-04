@@ -1,4 +1,4 @@
-// main.cpp - Tank Transformer
+﻿// main.cpp - Tank Transformer
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
@@ -7,7 +7,7 @@
 
 #include "include/Math3D.h"
 #include "include/ShaderManager.h"
-#include "Transformer.h" // Modificado
+#include "Transformer.h"
 #include "include/Environment.h"
 #include "include/HUD.h"
 
@@ -44,30 +44,17 @@ void main(){
 }
 )";
 
-GLuint       g_shader = 0;
-Transformer* g_tank = nullptr; // Modificado
+GLuint        g_shader = 0;
+Transformer* g_tank = nullptr;
 Environment* g_env = nullptr;
 HUD* g_hud = nullptr;
-int          g_winW = 900;
-int          g_winH = 650;
-std::string  g_selPart;
+int           g_winW = 900, g_winH = 650;
 
 static const Vec3 BODY_COLORS[] = {
-    {0.22f, 0.35f, 0.13f},
-    {0.55f, 0.20f, 0.12f},
-    {0.15f, 0.25f, 0.55f},
-    {0.65f, 0.55f, 0.10f},
-    {0.20f, 0.20f, 0.20f}
+    {0.22f,0.35f,0.13f},{0.55f,0.20f,0.12f},
+    {0.15f,0.25f,0.55f},{0.65f,0.55f,0.10f},{0.20f,0.20f,0.20f}
 };
 static int g_colorIdx = 0;
-
-static const std::string PARTS[] = {
-    "turret", "cannon", "hatch", "trackL", "trackR",
-    "body", "torso", "head", "armL", "armR", "legL", "legR", ""
-};
-static const int NUM_PARTS = 12;
-static int g_partIdx = 0;
-
 auto g_last = std::chrono::steady_clock::now();
 
 void display() {
@@ -77,7 +64,6 @@ void display() {
 
     Mat4 proj = mat4Perspective(45.f, (float)g_winW / g_winH, 0.1f, 100.f);
     Mat4 view = g_env->viewMatrix();
-
     glUniformMatrix4fv(glGetUniformLocation(g_shader, "projection"), 1, GL_FALSE, proj.ptr());
     glUniformMatrix4fv(glGetUniformLocation(g_shader, "view"), 1, GL_FALSE, view.ptr());
     glUniform3f(glGetUniformLocation(g_shader, "lightPos"), 5.f, 10.f, 5.f);
@@ -87,11 +73,11 @@ void display() {
     g_env->drawFloor(g_shader);
     g_tank->draw(g_shader);
 
-    // Modificado: Evaluar si es tanque bas�ndonos en el modo actual o el objetivo
-    bool isTankMode = (g_tank->currentMode == TransformMode::CAR) || (g_tank->targetMode == TransformMode::CAR);
-
+    bool isTankMode = (g_tank->currentMode == TransformMode::CAR);
+    // Mostrar nombre de parte seleccionada en HUD
+    std::string selName = g_tank->selectedPartName();
     g_hud->draw(g_tank->walking, g_tank->talking, g_tank->lightOn,
-        isTankMode, g_selPart, g_tank->shootCooldown);
+        isTankMode, selName, g_tank->shootCooldown);
 
     glutSwapBuffers();
 }
@@ -115,11 +101,11 @@ void keyboard(unsigned char key, int, int) {
     switch (tolower(key)) {
     case 'w': g_tank->startWalking(); break;
     case 's': g_tank->stopWalking();  break;
-    case 'a': g_tank->rotateTurret(-5); g_selPart = "torso"; g_tank->selectPart("torso"); break;
-    case 'd': g_tank->rotateTurret(5);  g_selPart = "torso"; g_tank->selectPart("torso"); break;
-    case 'q': g_tank->elevateCannon(-3); g_selPart = "armR"; g_tank->selectPart("armR"); break;
-    case 'e': g_tank->elevateCannon(3);  g_selPart = "armR"; g_tank->selectPart("armR"); break;
-    case 'h': g_tank->toggleHatch(); g_selPart = "head"; g_tank->selectPart("head"); break;
+    case 'a': g_tank->rotateTurret(-5); break;
+    case 'd': g_tank->rotateTurret(5);  break;
+    case 'q': g_tank->elevateCannon(-3); break;
+    case 'e': g_tank->elevateCannon(3);  break;
+    case 'h': g_tank->toggleHatch(); break;
     case 'f': g_tank->shoot(); break;
     case 'g': g_tank->greet(); break;
     case 'c':
@@ -127,36 +113,34 @@ void keyboard(unsigned char key, int, int) {
         g_tank->setBodyColor(BODY_COLORS[g_colorIdx]);
         break;
     case 't':
-        if (g_tank->currentMode == TransformMode::HUMANOID)
-            g_tank->startTransformTo(TransformMode::CAR);
-        else if (g_tank->currentMode == TransformMode::CAR)
-            g_tank->startTransformTo(TransformMode::PLANE);
-        else if (g_tank->currentMode == TransformMode::PLANE)
-            g_tank->startTransformTo(TransformMode::BOAT);
-        else
-            g_tank->startTransformTo(TransformMode::HUMANOID);
+        if (g_tank->currentMode == TransformMode::HUMANOID) g_tank->startTransformTo(TransformMode::CAR);
+        else if (g_tank->currentMode == TransformMode::CAR)      g_tank->startTransformTo(TransformMode::PLANE);
+        else if (g_tank->currentMode == TransformMode::PLANE)    g_tank->startTransformTo(TransformMode::BOAT);
+        else                                                    g_tank->startTransformTo(TransformMode::HUMANOID);
         break;
-    case 'x':
-        g_tank->clearSelection(&g_tank->root);
-        g_partIdx = (g_partIdx + 1) % (NUM_PARTS + 1);
-        g_selPart = (g_partIdx < NUM_PARTS) ? PARTS[g_partIdx] : "";
-        if (!g_selPart.empty()) g_tank->selectPart(g_selPart);
-        break;
+        // ── Seleccion y movimiento de partes (Req. 2) ──
+    case '\t': g_tank->selectNextPart(); break;        // TAB: siguiente parte
+    case 'u':  g_tank->moveSelectedPart(0, -5.f); break; // Rotar X -
+    case 'o':  g_tank->moveSelectedPart(0, 5.f); break; // Rotar X +
+    case 'y':  g_tank->moveSelectedPart(1, -5.f); break; // Rotar Y -
+    case 'n':  g_tank->moveSelectedPart(1, 5.f); break; // Rotar Y +
+    case 'z':  g_tank->moveSelectedPart(2, -5.f); break; // Rotar Z -
+    case 'b':  g_tank->moveSelectedPart(2, 5.f); break; // Rotar Z +
+        // ── Camara ──
     case 'i': g_env->camPitch = g_env->camPitch > -80 ? g_env->camPitch - 2 : -80; break;
-    case 'k': g_env->camPitch = g_env->camPitch < -5 ? g_env->camPitch + 2 : -5; break;
+    case 'k': g_env->camPitch = g_env->camPitch < -5 ? g_env->camPitch + 2 : -5;  break;
     case 'j': g_env->camYaw -= 3; break;
     case 'l': g_env->camYaw += 3; break;
-    case 27: glutLeaveMainLoop(); break;
+    case 27:  glutLeaveMainLoop(); break;
     }
 }
 
 void specialKeys(int key, int, int) {
-    const float step = 0.5f;
     switch (key) {
-    case GLUT_KEY_UP:    g_env->moveTarget(0, step); break;
-    case GLUT_KEY_DOWN:  g_env->moveTarget(0, -step); break;
-    case GLUT_KEY_LEFT:  g_env->moveTarget(-step, 0); break;
-    case GLUT_KEY_RIGHT: g_env->moveTarget(step, 0); break;
+    case GLUT_KEY_UP:    g_env->moveTarget(0, 0.5f); break;
+    case GLUT_KEY_DOWN:  g_env->moveTarget(0, -0.5f); break;
+    case GLUT_KEY_LEFT:  g_env->moveTarget(-0.5f, 0);  break;
+    case GLUT_KEY_RIGHT: g_env->moveTarget(0.5f, 0);  break;
     }
 }
 
@@ -164,15 +148,10 @@ void mouse(int btn, int state, int x, int y) {
     g_env->onMouseButton(btn, state, x, y);
     if (btn == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
         static int ti = 0;
-        static const Vec3 TC[] = {
-            {0.10f, 0.10f, 0.10f},
-            {0.35f, 0.28f, 0.18f},
-            {0.50f, 0.15f, 0.10f}
-        };
+        static const Vec3 TC[] = { {0.1f,0.1f,0.1f},{0.35f,0.28f,0.18f},{0.5f,0.15f,0.1f} };
         g_tank->setTrackColor(TC[ti++ % 3]);
     }
 }
-
 void mouseMotion(int x, int y) { g_env->onMouseMotion(x, y); }
 
 int main(int argc, char** argv) {
@@ -182,22 +161,17 @@ int main(int argc, char** argv) {
     glutCreateWindow("Tank Transformer - OpenGL 3.3");
 
     GLenum err = glewInit();
-    if (err != GLEW_OK) {
-        std::cerr << "Error GLEW: " << glewGetErrorString(err) << "\n";
-        return -1;
-    }
+    if (err != GLEW_OK) { std::cerr << "GLEW: " << glewGetErrorString(err) << "\n"; return -1; }
     std::cout << "OpenGL " << glGetString(GL_VERSION) << "\n";
 
     glEnable(GL_DEPTH_TEST);
     g_shader = ShaderManager::loadFromSrc(VS_SRC, FS_SRC);
-    if (!g_shader) { std::cerr << "Error al compilar shaders\n"; return -1; }
+    if (!g_shader) { std::cerr << "Shader error\n"; return -1; }
 
-    // Modificado: Instanciar la nueva clase
     g_tank = new Transformer();
     g_env = new Environment();
     g_hud = new HUD();
-    g_hud->windowW = g_winW;
-    g_hud->windowH = g_winH;
+    g_hud->windowW = g_winW; g_hud->windowH = g_winH;
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
@@ -207,11 +181,16 @@ int main(int argc, char** argv) {
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMotion);
 
-    std::cout << "=== Tank Transformer ===\n"
-        << "T: Transformar   W/S: Caminar/Parar   A/D: Torreta\n"
-        << "Q/E: Canon       H: Escotilla          G: Saludar\n"
-        << "F: Disparar      C: Color cuerpo       X: Seleccionar parte\n"
-        << "Flechas: Mover entorno   I/J/K/L: Camara   ESC: Salir\n";
+    std::cout
+        << "=== Tank Transformer ===\n"
+        << "T:     Transformar (HUMANO->AUTO->AVION->BARCO)\n"
+        << "W/S:   Caminar / Parar\n"
+        << "A/D:   Rotar torreta    Q/E: Elevar canon\n"
+        << "H:     Escotilla        G: Saludar    F: Disparar\n"
+        << "C:     Cambiar color\n"
+        << "TAB:   Seleccionar siguiente parte (se resalta en amarillo)\n"
+        << "U/O:   Rotar X  |  Y/N: Rotar Y  |  Z/B: Rotar Z\n"
+        << "Flechas: Mover camara   I/J/K/L: Orbitar   ESC: Salir\n";
 
     glutMainLoop();
     delete g_tank; delete g_env; delete g_hud;
