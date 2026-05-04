@@ -218,30 +218,21 @@ void Transformer::shoot() {
     if (shootCooldown > 0) return;
     shootCooldown = 0.5f;
 
-    if (currentMode == TransformMode::PLANE) {
-        // Dos bombas desde las alas
-        for (int side = -1; side <= 1; side += 2) {
-            Bullet b;
-            b.pos = { root.position.x + side * 1.8f,
-                       root.position.y + 1.2f,
-                       root.position.z };
-            b.dir = { 0.f, -0.5f, -1.0f };
-            b.life = 2.5f;
-            b.active = true;
-            b.isAir = true;
-            bullets.push_back(b);
-        }
-        recoilTimer = 0.25f;
-    }
-    else {
+    if (currentMode != TransformMode::PLANE) return;
+
+    // Dos bombas desde las alas
+    for (int side = -1; side <= 1; side += 2) {
         Bullet b;
-        b.pos = { root.position.x, root.position.y + 0.8f, root.position.z - 2.4f };
-        b.dir = { 0, 0, -1 };
-        b.life = 2.0f;
+        b.pos = { root.position.x + side * 1.8f,
+                   root.position.y + 1.2f,
+                   root.position.z };
+        b.dir = { 0.f, -0.5f, -1.0f };
+        b.life = 2.5f;
         b.active = true;
-        b.isAir = false;
+        b.isAir = true;
         bullets.push_back(b);
     }
+    recoilTimer = 0.25f;
     playSound(SND_SHOOT);
 }
 

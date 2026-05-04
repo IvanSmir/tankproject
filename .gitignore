@@ -359,3 +359,15 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# C++ build output
+x64/
+Plano-de-Corte/x64/
+*.recipe
+*.tlog
+*.idb
+*.lastbuildstate
+*.exe
+
+# Mantener DLLs necesarias para ejecutar
+!x64/Debug/freeglut.dll
+!x64/Debug/glew32.dll

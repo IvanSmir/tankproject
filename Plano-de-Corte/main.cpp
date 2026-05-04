@@ -73,11 +73,9 @@ void display() {
     g_env->drawFloor(g_shader);
     g_tank->draw(g_shader);
 
-    bool isTankMode = (g_tank->currentMode == TransformMode::CAR);
-    // Mostrar nombre de parte seleccionada en HUD
     std::string selName = g_tank->selectedPartName();
     g_hud->draw(g_tank->walking, g_tank->talking, g_tank->lightOn,
-        isTankMode, selName, g_tank->shootCooldown);
+        g_tank->currentMode, selName, g_tank->shootCooldown);
 
     glutSwapBuffers();
 }

@@ -1,57 +1,68 @@
 #pragma once
-// HUD.h - Texto 2D sobre la escena
 #include <GL/freeglut.h>
 #include <string>
+#include "Transformer.h"
 
 class HUD {
 public:
     int windowW = 800, windowH = 600;
 
     void draw(bool walking, bool talking, bool lightOn,
-              bool isTank, const std::string& selectedPart,
+              TransformMode mode, const std::string& selectedPart,
               float shootCD)
     {
         glDisable(GL_DEPTH_TEST);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        gluOrtho2D(0, windowW, 0, windowH);
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
+        glUseProgram(0);
 
-        drawText(10, windowH - 24, "TANK TRANSFORMER", 1.0f, 0.85f, 0.1f);
+        int x = 10;
+        int y = windowH - 20;
+        int dy = 16;
 
-        std::string modo = isTank ? "TANQUE" : "HUMANOIDE";
-        drawText(10, windowH - 46, "Modo: " + modo, 0.7f, 1.0f, 0.5f);
+        // Título y modo
+        std::string modoStr;
+        switch (mode) {
+            case TransformMode::HUMANOID: modoStr = "HUMANOIDE"; break;
+            case TransformMode::CAR:      modoStr = "AUTO";      break;
+            case TransformMode::PLANE:    modoStr = "AVION";     break;
+            case TransformMode::BOAT:     modoStr = "BARCO";     break;
+        }
+        drawText(x, y, "TANK TRANSFORMER",       1.0f, 0.85f, 0.1f); y -= dy;
+        drawText(x, y, "Modo: " + modoStr,       1.0f, 1.0f,  0.0f); y -= dy;
 
-        int yOff = 68;
-        if (walking)  { drawText(10, windowH - yOff, "[CAMINANDO]", 0.4f, 1.0f, 0.4f); yOff += 22; }
-        if (talking)  { drawText(10, windowH - yOff, "[HABLANDO]",  1.0f, 0.9f, 0.3f); yOff += 22; }
-        if (lightOn)  { drawText(10, windowH - yOff, "[LUZ ON]",    1.0f, 1.0f, 0.2f); yOff += 22; }
-        if (!selectedPart.empty())
-            { drawText(10, windowH - yOff, "Seleccionado: " + selectedPart, 0.3f, 0.8f, 1.0f); yOff += 22; }
-        if (shootCD > 0)
-            { drawText(10, windowH - yOff, "Recargando...", 1.0f, 0.4f, 0.2f); }
+        // Estados activos
+        if (walking) { drawText(x, y, "[CAMINANDO]", 0.4f, 1.0f, 0.4f); y -= dy; }
+        if (talking) { drawText(x, y, "[HABLANDO]",  1.0f, 0.9f, 0.3f); y -= dy; }
+        if (lightOn) { drawText(x, y, "[LUZ ON]",    1.0f, 1.0f, 0.2f); y -= dy; }
+        if (!selectedPart.empty()) { drawText(x, y, "Sel: " + selectedPart, 0.3f, 0.8f, 1.0f); y -= dy; }
+        if (shootCD > 0) { drawText(x, y, "Recargando...", 1.0f, 0.4f, 0.2f); y -= dy; }
 
-        int y = 10, dy = 18;
-        drawText(10, y + dy * 11, "-- CONTROLES --",             0.8f, 0.8f, 0.8f);
-        drawText(10, y + dy * 10, "T:     Transformar",          0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 9,  "W/S:   Caminar / Parar",      0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 8,  "A/D:   Rotar torreta",        0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 7,  "Q/E:   Elevar canon",         0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 6,  "H:     Abrir/cerrar escotilla", 0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 5,  "G:     Saludar y hablar",     0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 4,  "F:     Disparar (tanque)",    0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 3,  "C:     Cambiar color cuerpo", 0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 2,  "X:     Seleccionar parte",    0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 1,  "Flechas: Mover entorno",      0.7f, 0.7f, 0.7f);
-        drawText(10, y + dy * 0,  "Drag/IJKL: Rotar camara",    0.7f, 0.7f, 0.7f);
+        // Controles según modo
+        y -= 4;
+        drawText(x, y, "-- CONTROLES --",         0.8f, 0.8f, 0.8f); y -= dy;
+        drawText(x, y, "T:   Transformar",         0.7f, 0.7f, 0.7f); y -= dy;
+        drawText(x, y, "W/S: Avanzar / Parar",     0.7f, 0.7f, 0.7f); y -= dy;
 
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
+        if (mode == TransformMode::HUMANOID) {
+            drawText(x, y, "A/D: Rotar brazos",    0.7f, 0.7f, 0.7f); y -= dy;
+            drawText(x, y, "G:   Saludar",         0.7f, 0.7f, 0.7f); y -= dy;
+            drawText(x, y, "TAB: Selec. parte",    0.7f, 0.7f, 0.7f); y -= dy;
+            drawText(x, y, "U/O/Y/N/Z/B: Rotar",  0.7f, 0.7f, 0.7f); y -= dy;
+        }
+        if (mode == TransformMode::CAR) {
+            drawText(x, y, "C:   Cambiar color",           0.7f, 0.7f, 0.7f); y -= dy;
+            drawText(x, y, "Clic der: Color pistas",       0.7f, 0.7f, 0.7f); y -= dy;
+        }
+        if (mode == TransformMode::PLANE) {
+            drawText(x, y, "Q/E: Elevar alas",     0.7f, 0.7f, 0.7f); y -= dy;
+            drawText(x, y, "F:   Disparar",        0.7f, 0.7f, 0.7f); y -= dy;
+        }
+        if (mode == TransformMode::BOAT) {
+            drawText(x, y, "A/D: Rotar timon",     0.7f, 0.7f, 0.7f); y -= dy;
+        }
+
+        drawText(x, y, "Flechas/IJKL: Camara",     0.7f, 0.7f, 0.7f); y -= dy;
+        drawText(x, y, "Scroll: Zoom",              0.7f, 0.7f, 0.7f);
+
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -59,7 +70,7 @@ private:
     void drawText(int x, int y, const std::string& text,
                   float r, float g, float b) {
         glColor3f(r, g, b);
-        glRasterPos2i(x, y);
+        glWindowPos2i(x, y);
         for (char c : text)
             glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
     }
