@@ -414,7 +414,8 @@ void Transformer::stopWalking() {
     playSound(NULL);
 }
 void Transformer::greet() {
-    // Saludar funciona en cualquier modo
+    if (currentMode == TransformMode::PLANE) return;
+    
     greeting = true; greetTimer = 0; talking = true; talkTimer = 0; lightOn = true;
     // Forzar luces visibles al saludar
     if (lightL) { lightL->visible = true; lightL->color = COL_LIGHT; }
