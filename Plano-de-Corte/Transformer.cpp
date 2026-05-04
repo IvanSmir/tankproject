@@ -426,14 +426,42 @@ void Transformer::greet() {
 void Transformer::playSound(const wchar_t* filename) {
 #ifdef _WIN32
     if (!filename) { PlaySound(NULL, NULL, 0); return; }
-    // Ruta absoluta a la carpeta de sonidos del proyecto
-    std::wstring base = L"C:\\Users\\pedro\\source\\repos\\tankproject\\Plano-de-Corte\\sounds\\";
-    // Extraer solo el nombre del archivo
+
+    // Obtener la carpeta donde esta el .exe (equivale a ProjectDir en ejecucion)
+    wchar_t exePath[MAX_PATH] = {};
+    GetModuleFileNameW(NULL, exePath, MAX_PATH);
+
+    // Subir hasta la carpeta del proyecto (quitar \x64\Debug\app.exe)
+    std::wstring base(exePath);
+    // Quitar el nombre del exe
+    size_t slash = base.rfind(L'\\');
+    if (slash != std::wstring::npos) base = base.substr(0, slash + 1);
+
+    // La carpeta sounds esta junto al .exe o dos niveles arriba (segun config VS)
+    // Intentamos primero relativa al exe, luego subimos niveles
     std::wstring fn(filename);
     size_t pos = fn.rfind(L'\\');
     if (pos != std::wstring::npos) fn = fn.substr(pos + 1);
-    std::wstring fullPath = base + fn;
-    PlaySound(fullPath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+
+    // Intentar: exe\sounds\archivo.wav
+    std::wstring path1 = base + L"sounds\\" + fn;
+    // Intentar: exe\..\..\sounds\archivo.wav  (Debug/Release dentro de x64)
+    std::wstring path2 = base + L"..\\..\\sounds\\" + fn;
+    // Intentar: exe\..\..\..\sounds\archivo.wav
+    std::wstring path3 = base + L"..\\..\\..\\sounds\\" + fn;
+
+    // Usar la primera ruta que exista
+    auto fileExists = [](const std::wstring& p) {
+        return GetFileAttributesW(p.c_str()) != INVALID_FILE_ATTRIBUTES;
+        };
+
+    std::wstring finalPath;
+    if (fileExists(path1)) finalPath = path1;
+    else if (fileExists(path2)) finalPath = path2;
+    else if (fileExists(path3)) finalPath = path3;
+    else                        finalPath = path1; // fallback
+
+    PlaySound(finalPath.c_str(), NULL, SND_FILENAME | SND_ASYNC);
 #endif
 }
 
